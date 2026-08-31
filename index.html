@@ -20,6 +20,48 @@ body{font-family:Segoe UI,Arial,sans-serif;background:#f4f6f9;margin:0}
 <div class="header">PMO AI Assistant V1</div>
 <div class="container">
 <p><b>Setup:</b> Replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY in the script.</p>
+<div style="margin-bottom:15px;">
+
+<label style="font-weight:bold;">
+PMO Context :
+</label>
+
+<select
+    id="pmoContext"
+    style="
+        padding:8px;
+        margin-left:10px;
+        min-width:180px;
+    "
+>
+
+    <option value="all">
+        All Projects
+    </option>
+
+    <option value="Sagar">
+        Sagar
+    </option>
+
+    <option value="Sherly">
+        Sherly
+    </option>
+
+    <option value="Rahul">
+        Rahul
+    </option>
+
+    <option value="PMO4">
+        PMO4
+    </option>
+
+    <option value="PMO5">
+        PMO5
+    </option>
+
+</select>
+
+</div>
 <div class="shortcuts">
 <button onclick="runCommand('portfolio summary')">Portfolio Summary</button>
 <button onclick="runCommand('show overdue actions')">Overdue Actions</button>
@@ -42,6 +84,24 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 let supabaseClient=null;
 if(window.supabase){supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);} 
 const chat=document.getElementById('chat');
+let currentPMO = 'all';
+document.addEventListener("DOMContentLoaded", () => {
+
+    const dropdown =
+        document.getElementById("pmoContext");
+
+    dropdown.addEventListener("change", () => {
+
+        currentPMO =
+            dropdown.value;
+
+        addBot(
+            `Context switched to: ${currentPMO}`
+        );
+
+    });
+
+});
 function addUser(t){chat.innerHTML+=`<div class="user">${t}</div>`;chat.scrollTop=chat.scrollHeight;}
 function addBot(t){chat.innerHTML+=`<div class="bot">${t}</div>`;chat.scrollTop=chat.scrollHeight;}
 addBot(`Hello Sagar,
@@ -204,11 +264,14 @@ Status : ${x.status}
     if(view === 'vw_overdue_actions'){
 
     let output =
-`Overdue Actions (${data.length})
+`Overdue Actions (${filtered.length})
 
 `;
 
-    data.forEach(action => {
+    const filtered =
+    filterByPMO(data);
+
+filtered.forEach(action => {
 
         output +=
 `#${action.item_no}
@@ -235,11 +298,14 @@ Due Date : ${action.due_date}
 if(view === 'vw_open_actions'){
 
     let output =
-`Open Actions (${data.length})
+`Open Actions (${filtered.length})
 
 `;
 
-    data.forEach(action => {
+    const filtered =
+    filterByPMO(data);
+
+filtered.forEach(action => {
 
         output +=
 `#${action.item_no}
@@ -264,11 +330,12 @@ Status : ${action.status}
 if(view === 'vw_blocked_actions'){
 
     let output =
-`Blocked Actions (${data.length})
+`Blocked Actions (${filtered.length})
 
 `;
 
-    data.forEach(action => {
+    const filtered =
+    filterByPMO(data);
 
         output +=
 `#${action.item_no}
@@ -317,6 +384,25 @@ ${update.remark_text || ''}
 }
 
     addBot(JSON.stringify(data,null,2));
+}
+function filterByPMO(data){
+
+    if(currentPMO === 'all'){
+        return data;
+    }
+
+    return data.filter(item => {
+
+        const assigned =
+            (item.assigned_to || '')
+            .toLowerCase();
+
+        return assigned.includes(
+            currentPMO.toLowerCase()
+        );
+
+    });
+
 }
 </script>
 </body>
